@@ -1,0 +1,106 @@
+def MB_post():
+        collection = test_db.model_builder
+        _req = request.get_json()
+        buy_price = _req['buyprice']
+        year = _req['year']
+        kms = _req['kms']
+        owner = _req['owner']
+        Fuel_Type_Petrol = _req['fuel_type']
+        Seller_Type_Individual = _req['seller']
+        Transmission_Mannual = _req['gear']
+        ##Fuel_Type_Diesel
+
+        kms_driven =np.log(kms)
+
+        if(Fuel_Type_Petrol=='Petrol'):
+            Fuel_Type_Petrol=1
+            Fuel_Type_Diesel=0
+        else:
+            Fuel_Type_Petrol=0
+            Fuel_Type_Diesel=1
+
+        
+        if(Seller_Type_Individual=='Individual'):
+            Seller_Type_Individual=1
+        else:
+            Seller_Type_Individual=0	
+
+        if(Transmission_Mannual=='Mannual'):
+            Transmission_Mannual=1
+        else:
+            Transmission_Mannual=0
+
+        with open("H:\React\Data science project\ds-portal-flask\DS_portal_API\Random_forest_regression_model.pkl", 'rb') as file:
+            data = pickle.load(file)
+        
+        prediction=data.predict([[ buy_price,kms_driven,owner,year,Fuel_Type_Diesel,Fuel_Type_Petrol,Seller_Type_Individual,Transmission_Mannual]])
+        output=round(prediction[0],2)
+
+        if  request.method == 'POST':
+            inserted_id = collection.insert_one({ 'Buy_price': buy_price,'Year':  year,'Kilometres': kms, 'Owner': owner,  'Fuel_Type': Fuel_Type_Petrol,'Seller_Type': Seller_Type_Individual, 'Transmission_Type':  Transmission_Mannual, 'Output': output }).inserted_id
+            print(inserted_id)
+            resp = jsonify("user inputs added succesfully")
+            resp.status_code = 200
+
+            return resp
+        return json.loads(json_util.dumps(output))
+
+    @endpoints.route("/user")
+    @cross_origin()
+    def find_all_people():
+        collection = test_db.login
+        user = collection.find() 
+        return json.loads(json_util.dumps(user))
+
+    @endpoints.route("/car")
+    @cross_origin()
+    def modelbuilder():
+        #model = pickle.load(open('H:\React\Data science project\ds-portal-flask\DS_portal_API\random_forest_regression_model.pkl', 'rb'))
+        #prediction=model.predict([[Present_Price,Kms_Driven2,Owner,Year,Fuel_Type_Diesel,Fuel_Type_Petrol,Seller_Type_Individual,Transmission_Mannual]])
+        
+        with open("H:\React\Data science project\ds-portal-flask\DS_portal_API\Random_forest_regression_model.pkl", 'rb') as file:
+            data = pickle.load(file)
+        
+        prediction=data.predict([[6.5,10.126631103850338,1,4,0,1,0,1]])
+        output=round(prediction[0],2)
+
+        return json.loads(json_util.dumps(str(output)))
+
+    @endpoints.route("/test")
+    @cross_origin()
+    def testing():
+       
+        return {"members": ["Memeber1","Memebr2", "Member3"  ]}
+
+
+    
+    @endpoints.route("/dqreport", methods=['POST'])
+    @cross_origin()
+
+    def add_csv():
+        collections = test_db.Dq_reprot
+        _req = request.get_json()
+        _csvFile = _req['csvArray']
+      
+
+        if _csvFile and request.method == 'POST':
+            inserted_id = collections.insert_one({'csvFile':_csvFile}).inserted_id
+            print(inserted_id)
+            resp = jsonify("csv added succesfully")
+            resp.status_code = 200
+
+            return resp
+        else:
+            return not_found()
+
+
+         uploading csv into mongodB
+     
+        # collections = test_db.Dq_reprot
+
+        # collections.insert_one({
+        #     "binary_field": bson.Binary(pickle.dumps(f)), })
+
+
+    
+
